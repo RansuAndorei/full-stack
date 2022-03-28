@@ -3,11 +3,12 @@
 // This will turn off eslint rules conflicting with prettier.
 // This does not format our code.
 {
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "css"],
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "prettier",
+    "plugin:css/recommended"
   ],
   "rules": {
     "prefer-const": "error",
