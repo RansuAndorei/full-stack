@@ -40,7 +40,7 @@ const Food: NextPage = ({
       setListOfFoods(newSorted);
       notify();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const notify = () =>
     toast.success("🍽️ Food added to your Food list", {

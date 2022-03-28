@@ -45,7 +45,7 @@ const Movie: NextPage = ({
       setListOfMovies(newSorted);
       notify();
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const notify = () =>
     toast.success("🎥 Movie added to your Movie list", {
