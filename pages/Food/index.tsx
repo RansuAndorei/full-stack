@@ -1,24 +1,22 @@
-import type { NextPage, InferGetStaticPropsType, GetStaticProps } from "next";
+import type { NextPage } from "next";
 import { useState, useEffect } from "react";
 import Head from "next/head";
-import styles from "../styles/MainTabs.module.css";
-import data from "../data/favoriteFood";
-import Title from "../components/Title";
-import Card from "../components/Card";
-import Sort from "../components/Sort";
-import Layout from "../components/Layout";
-import ImageView from "../components/ImageView";
-import { Food } from "../types";
-import { lightTheme, darkTheme } from "../data/colors";
+import styles from "../../styles/MainTabs.module.css";
+import Title from "../../components/Title";
+import Card from "../../components/Card";
+import Sort from "../../components/Sort";
+import Layout from "../../components/Layout";
+import ImageView from "../../components/ImageView";
+import { Food } from "../../types";
+import { lightTheme, darkTheme } from "../../data/colors";
 import Link from "next/link";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
-const Food: NextPage = ({
-  FavoriteFoods,
-}: InferGetStaticPropsType<typeof getStaticProps>) => {
-  const [listOfFoods, setListOfFoods] = useState(FavoriteFoods);
-  const [sortedFoods, setSortedFoods] = useState(FavoriteFoods);
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "../../utils/firebase";
+
+const Food: NextPage = () => {
+  const [listOfFoods, setListOfFoods] = useState<Array<Food>>([]);
+  const [sortedFoods, setSortedFoods] = useState<Array<Food>>([]);
   const [text, setText] = useState("");
   const [sort, setSort] = useState("name");
   const [color, setColors] = useState(lightTheme);
@@ -26,36 +24,49 @@ const Food: NextPage = ({
   const [modalImage, setModalImage] = useState("");
 
   useEffect(() => {
-    const newFood = sessionStorage.getItem("Food");
-    if (newFood !== null) {
-      const parsedNewFood = JSON.parse(newFood).reverse();
-      parsedNewFood.forEach((food: Food, index: number) => {
-        parsedNewFood[index].phoneNumber = `(${food.phoneNumber.slice(
-          0,
-          4
-        )}) ${food.phoneNumber.slice(4, 7)} - ${food.phoneNumber.slice(7, 12)}`;
-      });
-      const newSorted = [...parsedNewFood, ...sortedFoods];
-      setSortedFoods(newSorted);
-      setListOfFoods(newSorted);
-      notify();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const colRef = collection(db, "foods");
+    const queryFood = query(colRef, orderBy("createdAt", "desc"));
+    const snap = onSnapshot(queryFood, (snapshot) => {
+      const foods: Array<Food> = [];
+      snapshot.docs.forEach((doc) => {
+        const fPhoneNumber = `(${doc.data().phoneNumber.slice(0, 4)}) ${doc
+          .data()
+          .phoneNumber.slice(4, 7)} - ${doc.data().phoneNumber.slice(7, 12)}`;
 
-  const notify = () =>
-    toast.success("🍽️ Food added to your Food list", {
-      position: "bottom-center",
-      autoClose: 3500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
+        foods.push({
+          id: doc.id,
+          name: doc.data().name,
+          description: doc.data().description,
+          rating: doc.data().rating,
+          phoneNumber: fPhoneNumber,
+          releaseDate: doc.data().releaseDate,
+          image: doc.data().image,
+          createdAt: doc.data().createdAt,
+        });
+        // console.log(
+        //   new Date(
+        //     doc.data().createdAt.seconds * 1000 +
+        //       doc.data().createdAt.nanoseconds / 1000000
+        //   )
+        // );
+      });
+      // const d = new Date();
+      // d.setDate(d.getDate() - 5);
+      // console.log("CURRENT DATE", new Date(d));
+      setListOfFoods(foods);
+      setSortedFoods(foods);
     });
+
+    return () => {
+      // cancel the subscription
+      snap();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const changeSort = (type: string) => {
     setSort(type);
-    setSortedFoods((prev: Food[]) => {
+
+    setSortedFoods((prev: Array<Food>) => {
       switch (type) {
         case "name":
           return prev.sort((a, b) =>
@@ -66,7 +77,7 @@ const Food: NextPage = ({
         case "decreasing":
           return prev.sort((a, b) => b.rating - a.rating);
         default:
-          return 0;
+          return [];
       }
     });
   };
@@ -111,17 +122,6 @@ const Food: NextPage = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout theme={color}>
-        <ToastContainer
-          position="bottom-center"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
         <div className={styles["toggle-button-container"]}>
           <button
             className={`btn btn-${color.buttonColor} ${styles["toggle-button"]}`}
@@ -158,6 +158,7 @@ const Food: NextPage = ({
                   data={food}
                   theme={color}
                   getClickedImage={getClickedImage}
+                  source={"Food"}
                 />
               );
             })}
@@ -171,27 +172,6 @@ const Food: NextPage = ({
       </Layout>
     </div>
   );
-};
-
-export const getStaticProps: GetStaticProps = async () => {
-  const FavoriteFoods: Food[] = [...data].sort((a, b) =>
-    a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-  );
-
-  if (FavoriteFoods[0].phoneNumber.length === 11) {
-    FavoriteFoods.forEach((food, index) => {
-      FavoriteFoods[index].phoneNumber = `(${food.phoneNumber.slice(
-        0,
-        4
-      )}) ${food.phoneNumber.slice(4, 7)} - ${food.phoneNumber.slice(7, 12)}`;
-    });
-  }
-
-  return {
-    props: {
-      FavoriteFoods,
-    },
-  };
 };
 
 export default Food;

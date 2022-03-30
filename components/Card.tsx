@@ -1,14 +1,20 @@
 import styles from "../styles/Card.module.css";
 import Image from "next/image";
+import Link from "next/link";
 import { Food, Movie, Color } from "../types";
+import { db } from "../utils/firebase";
+import { deleteDoc, doc } from "firebase/firestore";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type CardProp = {
   data: Food | Movie;
   theme: Color;
   getClickedImage: (text: string) => void;
+  source: string;
 };
 
-const Card = ({ data, theme, getClickedImage }: CardProp) => {
+const Card = ({ data, theme, getClickedImage, source }: CardProp) => {
   const ratingsFill = (star: number) => {
     let rating = "";
     for (let i = 0; i < star; i++) {
@@ -25,11 +31,54 @@ const Card = ({ data, theme, getClickedImage }: CardProp) => {
     return rating;
   };
 
+  const deleteItem = () => {
+    // const docRef = doc(db, `${source.toLowerCase}s`, data.id);
+    // deleteDoc(docRef).then(() => {
+    //   toast.success("🗑 Succesfully Deleted", {
+    //     position: "bottom-center",
+    //     autoClose: 5000,
+    //     hideProgressBar: false,
+    //     closeOnClick: true,
+    //     pauseOnHover: true,
+    //     draggable: true,
+    //     progress: undefined,
+    //   });
+    // });
+
+    const text = `Do you really want to delete ${data.name}?`;
+    if (confirm(text) == true) {
+      const docRef = doc(db, `${source.toLowerCase()}s`, data.id);
+      deleteDoc(docRef).then(() => {
+        toast.success(`${data.name} Succesfully Deleted`, {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+    }
+  };
+
   return (
     <div
       key={data.id}
       className={`shadow-lg mb-5 bg-${theme.divBackgroundColor} ${styles["card-container"]}`}
     >
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <div className={`${styles["image-container"]}`}>
         <Image
           src={data.image}
@@ -82,6 +131,30 @@ const Card = ({ data, theme, getClickedImage }: CardProp) => {
         <span className={`text-${theme.textColor} text-center`}>
           {data.phoneNumber}
         </span>
+      </div>
+
+      <div
+        className={`${styles["phone-button-container"]} bg-${theme.divBackgroundColor}`}
+      >
+        <Link href={`${source}/edit/${data.id}`} passHref>
+          <button
+            type="button"
+            className={`btn ${`btn-warning`} ${styles["sort-button"]} ${
+              styles["button"]
+            }`}
+          >
+            ✎
+          </button>
+        </Link>
+        <button
+          type="button"
+          className={`btn ${`btn-danger`} ${styles["sort-button"]} ${
+            styles["button"]
+          }`}
+          onClick={deleteItem}
+        >
+          🗑
+        </button>
       </div>
     </div>
   );

@@ -1,23 +1,25 @@
-import { type } from "os";
+import { Timestamp } from "firebase/firestore";
 
 export type Food = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   rating: number;
   image: string;
   phoneNumber: string;
   releaseDate: null;
+  createdAt: Timestamp;
 };
 
 export type Movie = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   rating: number;
   image: string;
   phoneNumber: string;
-  releaseDate: Date;
+  releaseDate: string;
+  createdAt: Timestamp;
 };
 
 export type Color = {
