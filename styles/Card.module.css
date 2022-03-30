@@ -4,6 +4,7 @@
   border-radius: 0.6rem;
   overflow: hidden;
   animation: 1.5s ease bounce;
+  padding-bottom: 2rem;
 }
 
 .image-container {
@@ -100,12 +101,12 @@
   }
 }
 
-.phone-button-container {
+.button-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  margin: 1rem;
+  margin-top: 2rem;
 }
 
 .button {

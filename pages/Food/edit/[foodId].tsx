@@ -14,12 +14,14 @@ import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../../utils/firebase";
+import { db, auth } from "../../../utils/firebase";
 import { useRouter } from "next/router";
 
 const FoodEdit: NextPage = ({
   params,
 }: InferGetStaticPropsType<typeof getStaticProps>) => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
   const schema = Yup.object({
     name: Yup.string().required("* Name is required"),
     releaseDate: Yup.date().typeError("* Enter a valid Date"),
@@ -104,6 +106,14 @@ const FoodEdit: NextPage = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        setIsSignedIn(true);
+      } else {
+        setIsSignedIn(false);
+      }
+    });
+
     if (params !== undefined) {
       const docRef = doc(db, "foods", params.foodId);
       getDoc(docRef).then((doc) => {
@@ -120,6 +130,30 @@ const FoodEdit: NextPage = ({
       setLoading(false);
     }
   }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!isSignedIn) {
+    return (
+      <div className={styles["invalid-page-container"]}>
+        <div className="jumbotron ">
+          <h1 className="display-4">Uh oh...</h1>
+          <p className="lead">
+            You need to login in order to access this page.
+          </p>
+          <hr className="my-4" />
+          <p>
+            Only the admin can perform Create, Update, and Delete operations.
+          </p>
+          <p className="lead mt-5 ">
+            <Link href={"/login"} passHref>
+              <a className="btn btn-primary btn-lg" href="#" role="button">
+                Login
+              </a>
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

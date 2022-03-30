@@ -12,7 +12,7 @@ import { lightTheme, darkTheme } from "../../data/colors";
 import Link from "next/link";
 
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "../../utils/firebase";
+import { db, auth } from "../../utils/firebase";
 
 const Movie: NextPage = () => {
   const [listOfMovies, setListOfMovies] = useState<Array<Movie>>([]);
@@ -22,8 +22,16 @@ const Movie: NextPage = () => {
   const [color, setColors] = useState(lightTheme);
   const [showImage, setShowImage] = useState(false);
   const [modalImage, setModalImage] = useState("");
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        setIsSignedIn(true);
+      } else {
+        setIsSignedIn(false);
+      }
+    });
     const colRef = collection(db, "movies");
     const queryFood = query(colRef, orderBy("createdAt", "desc"));
     const snap = onSnapshot(queryFood, (snapshot) => {
@@ -135,11 +143,13 @@ const Movie: NextPage = () => {
             changeSort={changeSort}
             theme={color}
           />
-          <div className={styles["add-container"]}>
-            <Link href={"/form/Movie"}>
-              <a className="btn btn-success w-50">Add Movie</a>
-            </Link>
-          </div>
+          {isSignedIn && (
+            <div className={styles["add-container"]}>
+              <Link href={"/form/Movie"}>
+                <a className="btn btn-success w-50">Add Movie</a>
+              </Link>
+            </div>
+          )}
           <div className={`${styles["cards-container"]}`}>
             {sortedMovies.map((movie: Movie) => {
               return (
@@ -149,6 +159,7 @@ const Movie: NextPage = () => {
                   theme={color}
                   getClickedImage={getClickedImage}
                   source={"Movie"}
+                  signedIn={isSignedIn}
                 />
               );
             })}

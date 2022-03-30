@@ -12,9 +12,10 @@ type CardProp = {
   theme: Color;
   getClickedImage: (text: string) => void;
   source: string;
+  signedIn: boolean;
 };
 
-const Card = ({ data, theme, getClickedImage, source }: CardProp) => {
+const Card = ({ data, theme, getClickedImage, source, signedIn }: CardProp) => {
   const ratingsFill = (star: number) => {
     let rating = "";
     for (let i = 0; i < star; i++) {
@@ -133,29 +134,31 @@ const Card = ({ data, theme, getClickedImage, source }: CardProp) => {
         </span>
       </div>
 
-      <div
-        className={`${styles["phone-button-container"]} bg-${theme.divBackgroundColor}`}
-      >
-        <Link href={`${source}/edit/${data.id}`} passHref>
+      {signedIn && (
+        <div
+          className={`${styles["button-container"]} bg-${theme.divBackgroundColor}`}
+        >
+          <Link href={`${source}/edit/${data.id}`} passHref>
+            <button
+              type="button"
+              className={`btn ${`btn-warning`} ${styles["sort-button"]} ${
+                styles["button"]
+              }`}
+            >
+              ✎
+            </button>
+          </Link>
           <button
             type="button"
-            className={`btn ${`btn-warning`} ${styles["sort-button"]} ${
+            className={`btn ${`btn-danger`} ${styles["sort-button"]} ${
               styles["button"]
             }`}
+            onClick={deleteItem}
           >
-            ✎
+            🗑
           </button>
-        </Link>
-        <button
-          type="button"
-          className={`btn ${`btn-danger`} ${styles["sort-button"]} ${
-            styles["button"]
-          }`}
-          onClick={deleteItem}
-        >
-          🗑
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
