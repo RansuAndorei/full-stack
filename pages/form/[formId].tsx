@@ -4,20 +4,33 @@ import type {
   GetStaticProps,
   InferGetStaticPropsType,
 } from "next";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import styles from "../../styles/Form.module.css";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Link from "next/link";
 
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../../utils/firebase";
+import { db, auth } from "../../utils/firebase";
 
 const FormPage: NextPage = ({
   params,
 }: InferGetStaticPropsType<typeof getStaticProps>) => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        setIsSignedIn(true);
+      } else {
+        setIsSignedIn(false);
+      }
+    });
+  }, []);
+
   const schema = Yup.object({
     name: Yup.string().required("* Name is required"),
     releaseDate: Yup.date().typeError("* Enter a valid Date"),
@@ -143,6 +156,30 @@ const FormPage: NextPage = ({
       progress: undefined,
     });
   };
+
+  if (!isSignedIn) {
+    return (
+      <div className={styles["invalid-page-container"]}>
+        <div className="jumbotron ">
+          <h1 className="display-4">Uh oh...</h1>
+          <p className="lead">
+            You need to login in order to access this page.
+          </p>
+          <hr className="my-4" />
+          <p>
+            Only the admin can perform Create, Update, and Delete operations.
+          </p>
+          <p className="lead mt-5 ">
+            <Link href={"/login"} passHref>
+              <a className="btn btn-primary btn-lg" href="#" role="button">
+                Login
+              </a>
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
