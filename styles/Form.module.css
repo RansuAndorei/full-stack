@@ -8,3 +8,18 @@
 .form-container {
   margin-bottom: 2rem;
 }
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border: 1 solid;
+}

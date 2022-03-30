@@ -7,9 +7,13 @@ import type {
 import React from "react";
 import { useForm } from "react-hook-form";
 import styles from "../../styles/Form.module.css";
-import { useRouter } from "next/router";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../utils/firebase";
 
 const FormPage: NextPage = ({
   params,
@@ -22,11 +26,12 @@ const FormPage: NextPage = ({
       .url("* Enter a valid URL")
       .test(
         "checkURL",
-        "* Only Unsplash and TMDB Images are available",
+        "* Only Unsplash, TMDB, and Firebase Images are available",
         (image = "") => {
           if (
             image.toLowerCase().includes("unsplash.com", 0) ||
-            image.toLowerCase().includes("image.tmdb.org", 0)
+            image.toLowerCase().includes("image.tmdb.org", 0) ||
+            image.toLowerCase().includes("firebasestorage.googleapis.com", 0)
           ) {
             return true;
           } else {
@@ -60,42 +65,99 @@ const FormPage: NextPage = ({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({ mode: "onBlur", resolver: yupResolver(schema) });
 
-  const router = useRouter();
+  const monthConverter = (date: string) => {
+    switch (date) {
+      case "Jan":
+        return "01";
+      case "Feb":
+        return "02";
+      case "Mar":
+        return "03";
+      case "Apr":
+        return "04";
+      case "May":
+        return "05";
+      case "Jun":
+        return "06";
+      case "Jul":
+        return "07";
+      case "Aug":
+        return "08";
+      case "Sep":
+        return "09";
+      case "Oct":
+        return "10";
+      case "Nov":
+        return "11";
+      case "Dec":
+        return "12";
+    }
+  };
+
+  const dateConverter = (date: string) => {
+    return `${date.slice(11, 15)}-${monthConverter(
+      date.slice(4, 7)
+    )}-${date.slice(8, 10)}`;
+  };
 
   const onSubmit = (data: { [x: string]: object }) => {
-    const id = new Date().getTime();
-    const formData = {
-      id: id,
+    const colRef = collection(db, `${params.formId.toLowerCase()}s`);
+
+    addDoc(colRef, {
       description: data.description,
       rating: data.rating,
       name: data.name,
       image: data.image,
       phoneNumber: data.phoneNumber,
-      releaseDate: data.releaseDate,
-    };
+      releaseDate:
+        params.formId === "Movie" ? dateConverter(`${data.releaseDate}`) : null,
+      createdAt: serverTimestamp(),
+    });
 
-    const storedData = sessionStorage.getItem(`${params.formId}`);
-    if (storedData === null) {
-      const newData = [];
-      newData.push(formData);
-      sessionStorage.setItem(`${params.formId}`, JSON.stringify(newData));
-    } else {
-      const parsedStoredData = JSON.parse(storedData);
-      sessionStorage.setItem(
-        `${params.formId}`,
-        JSON.stringify([...parsedStoredData, formData])
-      );
-    }
-    router.push(`/${params.formId}`);
+    reset({
+      name: "",
+      releaseDate: params.formId === "Food" ? undefined : null,
+      image: "",
+      description: "",
+      rating: null,
+      phoneNumber: "",
+    });
+    notify();
+  };
+
+  const notify = () => {
+    const toastText = `${params.formId === "Movie" ? "🎥" : "🍽️"} ${
+      params.formId
+    } added to your ${params.formId} list`;
+    toast.success(toastText, {
+      position: "bottom-center",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
   };
 
   return (
     <div className={styles.container}>
       <h1 className="display-1 text-center mb-5">Form for {params.formId}</h1>
-
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group form-container mb-3">
           <label htmlFor="name" className="mb-1">
