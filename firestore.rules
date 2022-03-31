@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+   	match /foods/{food}{
+    	allow read;
+      allow create, update, delete: if isLoggedIn() && isAdmin();
+    }
+    
+    match /movies/{movie}{
+    	allow read;
+      allow create, update, delete: if isLoggedIn() && isAdmin();
+    }
+    
+    function isLoggedIn(){
+    	return request.auth != null;
+    }
+    function isAdmin(){
+			return request.auth.uid == "E7pUagbQrbds2tthfq6luXS2bZ42";
+		}
+    
+    match /users/{user}{
+    	allow read, create, update, delete: if true;
+    }
+    
+  }
+}

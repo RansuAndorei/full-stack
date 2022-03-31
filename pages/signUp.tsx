@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
 import { db, auth } from "../utils/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { addDoc, collection } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/router";
 
 const SignUp: NextPage = () => {
@@ -75,12 +75,10 @@ const SignUp: NextPage = () => {
   const router = useRouter();
   const onSubmit = (data: { [x: string]: object }) => {
     createUserWithEmailAndPassword(auth, `${data.email}`, `${data.password}`)
-      .then(() => {
-        const colRef = collection(db, "users");
-        addDoc(colRef, {
+      .then((cred) => {
+        setDoc(doc(db, "Viewer", cred.user.uid), {
           name: `${data.fullName}`,
           email: `${data.email}`,
-          userRole: "Viewer",
         });
         router.push(`/`);
       })
