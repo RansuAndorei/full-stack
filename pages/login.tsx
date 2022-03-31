@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import styles from "../styles/SignUp.module.css";
 import Layout from "../components/Layout";
@@ -13,9 +13,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { auth } from "../utils/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 const Login: NextPage = () => {
   const [color, setColors] = useState(lightTheme);
+  const [loading, setLoading] = useState(true);
 
   const changeTheme = () => {
     setColors((prev) => {
@@ -26,6 +28,16 @@ const Login: NextPage = () => {
       }
     });
   };
+
+  useEffect(() => {
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        router.push("/");
+      } else {
+        setLoading(false);
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const schema = Yup.object({
     email: Yup.string()
@@ -83,6 +95,16 @@ const Login: NextPage = () => {
       progress: undefined,
     });
   };
+
+  if (loading) {
+    return (
+      <div className={`${styles["loading-container"]}`}>
+        <div className="spinner-border" role="status">
+          <span className="sr-only"></span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -142,12 +164,8 @@ const Login: NextPage = () => {
                                   placeholder="Email"
                                   {...register("email")}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.email?.message}
-                                </small>
                               </div>
                             </div>
-
                             <div className="d-flex flex-row align-items-center mb-4">
                               <i className="fas fa-lock fa-lg me-3 fa-fw"></i>
                               <div className="form-outline flex-fill mb-0">
@@ -160,22 +178,23 @@ const Login: NextPage = () => {
                                   placeholder="Password"
                                   {...register("password")}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.password?.message}
-                                </small>
                               </div>
                             </div>
-
                             <div className="form-check d-flex justify-content-center mb-5">
                               <label
-                                className="form-check-label"
+                                className="form-check-label text-center"
                                 htmlFor="form2Example3"
                               >
-                                By logging in you agree on all statements in{" "}
-                                <a href="#!">Terms of service</a>
+                                By logging in you agree on all statements in{""}
+                                <br></br>
+                                <a
+                                  href="#!"
+                                  className="text-primary fst-italic"
+                                >
+                                  Terms of service
+                                </a>
                               </label>
                             </div>
-
                             <div className="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
                               <button
                                 type="submit"
@@ -183,6 +202,19 @@ const Login: NextPage = () => {
                               >
                                 Login
                               </button>
+                            </div>
+                            <div className="form-check d-flex justify-content-center mb-5">
+                              <label
+                                className="form-check-label"
+                                htmlFor="form2Example3"
+                              >
+                                Not a member?{" "}
+                                <Link href={"/signUp"}>
+                                  <a href="#!" className="text-primary fw-bold">
+                                    Register
+                                  </a>
+                                </Link>
+                              </label>
                             </div>
                           </form>
                         </div>

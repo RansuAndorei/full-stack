@@ -129,17 +129,29 @@ const FormPage: NextPage = ({
       releaseDate:
         params.formId === "Movie" ? dateConverter(`${data.releaseDate}`) : null,
       createdAt: serverTimestamp(),
-    });
-
-    reset({
-      name: "",
-      releaseDate: params.formId === "Food" ? undefined : null,
-      image: "",
-      description: "",
-      rating: null,
-      phoneNumber: "",
-    });
-    notify();
+    })
+      .then(() => {
+        reset({
+          name: "",
+          releaseDate: params.formId === "Food" ? undefined : null,
+          image: "",
+          description: "",
+          rating: null,
+          phoneNumber: "",
+        });
+        notify();
+      })
+      .catch((err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
   };
 
   const notify = () => {

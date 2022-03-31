@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import styles from "../styles/SignUp.module.css";
 import Layout from "../components/Layout";
@@ -10,10 +10,16 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Link from "next/link";
+import { db, auth } from "../utils/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { addDoc, collection } from "firebase/firestore";
+import { useRouter } from "next/router";
 
 const SignUp: NextPage = () => {
   const [color, setColors] = useState(lightTheme);
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const changeTheme = () => {
     setColors((prev) => {
@@ -24,6 +30,16 @@ const SignUp: NextPage = () => {
       }
     });
   };
+
+  useEffect(() => {
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        router.push("/");
+      } else {
+        setLoading(false);
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const schema = Yup.object({
     fullName: Yup.string().required("* Full Name is required"),
@@ -56,33 +72,34 @@ const SignUp: NextPage = () => {
     formState: { errors },
   } = useForm({ mode: "onBlur", resolver: yupResolver(schema) });
 
+  const router = useRouter();
   const onSubmit = (data: { [x: string]: object }) => {
-    // const colRef = collection(db, `${params.formId.toLowerCase()}s`);
-
-    // addDoc(colRef, {
-    //   description: data.description,
-    //   rating: data.rating,
-    //   name: data.name,
-    //   image: data.image,
-    //   phoneNumber: data.phoneNumber,
-    //   releaseDate:
-    //     params.formId === "Movie" ? dateConverter(`${data.releaseDate}`) : null,
-    //   createdAt: serverTimestamp(),
-    // });
-
-    reset({
-      fullName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      terms: false,
-    });
-    console.log(data);
-    notify();
+    createUserWithEmailAndPassword(auth, `${data.email}`, `${data.password}`)
+      .then(() => {
+        const colRef = collection(db, "users");
+        addDoc(colRef, {
+          name: `${data.fullName}`,
+          email: `${data.email}`,
+          userRole: "Viewer",
+        });
+        router.push(`/`);
+      })
+      .catch((error) => {
+        if (error.message === "Firebase: Error (auth/email-already-in-use).") {
+          notify("Email is already in use");
+        }
+        reset({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          terms: false,
+        });
+      });
   };
 
-  const notify = () => {
-    toast.success("👤 New Admin Successfully Added!", {
+  const notify = (message: string) => {
+    toast.warning(message, {
       position: "bottom-center",
       autoClose: 2000,
       hideProgressBar: false,
@@ -92,6 +109,16 @@ const SignUp: NextPage = () => {
       progress: undefined,
     });
   };
+
+  if (loading) {
+    return (
+      <div className={`${styles["loading-container"]}`}>
+        <div className="spinner-border" role="status">
+          <span className="sr-only"></span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -151,9 +178,6 @@ const SignUp: NextPage = () => {
                                   placeholder="Full Name"
                                   {...register("fullName")}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.fullName?.message}
-                                </small>
                               </div>
                             </div>
 
@@ -169,9 +193,6 @@ const SignUp: NextPage = () => {
                                   placeholder="Email"
                                   {...register("email")}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.email?.message}
-                                </small>
                               </div>
                             </div>
 
@@ -190,9 +211,6 @@ const SignUp: NextPage = () => {
                                     setPassword(event.target.value);
                                   }}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.password?.message}
-                                </small>
                               </div>
                             </div>
 
@@ -209,9 +227,6 @@ const SignUp: NextPage = () => {
                                   placeholder="Confirm Password"
                                   {...register("confirmPassword")}
                                 />
-                                <small className="form-text text-danger">
-                                  {errors.confirmPassword?.message}
-                                </small>
                               </div>
                             </div>
 
@@ -239,6 +254,20 @@ const SignUp: NextPage = () => {
                               >
                                 Register
                               </button>
+                            </div>
+
+                            <div className="form-check d-flex justify-content-center mb-5">
+                              <label
+                                className="form-check-label"
+                                htmlFor="form2Example3"
+                              >
+                                Already a member?{" "}
+                                <Link href={"/login"}>
+                                  <a href="#!" className="text-primary fw-bold">
+                                    Login
+                                  </a>
+                                </Link>
+                              </label>
                             </div>
                           </form>
                         </div>

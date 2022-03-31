@@ -117,10 +117,22 @@ const MovieEdit: NextPage = ({
       image: data.image,
       phoneNumber: data.phoneNumber,
       releaseDate: dateConverter(`${data.releaseDate}`),
-    });
-
-    router.push(`/Movie`);
-    notify();
+    })
+      .then(() => {
+        router.push(`/Movie`);
+        notify();
+      })
+      .catch((err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
   };
 
   const notify = () => {

@@ -8,6 +8,9 @@ import { auth } from "../utils/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/router";
 
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 type LayoutProps = {
   theme: Color;
 };
@@ -40,6 +43,15 @@ const Header = ({ theme }: LayoutProps) => {
   const logoutUser = () => {
     if (confirm("Do you want to logout? ") == true) {
       signOut(auth);
+      toast.success(`Logged out`, {
+        position: "bottom-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       router.push(`/`);
       setLogout(false);
     }
@@ -117,6 +129,17 @@ const Header = ({ theme }: LayoutProps) => {
           </div>
         </div>
       )}
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };
