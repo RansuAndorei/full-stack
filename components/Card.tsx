@@ -49,17 +49,29 @@ const Card = ({ data, theme, getClickedImage, source, signedIn }: CardProp) => {
     const text = `Do you really want to delete ${data.name}?`;
     if (confirm(text) == true) {
       const docRef = doc(db, `${source.toLowerCase()}s`, data.id);
-      deleteDoc(docRef).then(() => {
-        toast.success(`${data.name} Succesfully Deleted`, {
-          position: "bottom-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
+      deleteDoc(docRef)
+        .then(() => {
+          toast.success(`${data.name} Succesfully Deleted`, {
+            position: "bottom-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        })
+        .catch((err) => {
+          toast.error(err.message, {
+            position: "bottom-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
         });
-      });
     }
   };
 

@@ -84,10 +84,22 @@ const FoodEdit: NextPage = ({
       image: data.image,
       phoneNumber: data.phoneNumber,
       releaseDate: null,
-    });
-
-    router.push(`/Food`);
-    notify();
+    })
+      .then(() => {
+        router.push(`/Food`);
+        notify();
+      })
+      .catch((err) => {
+        toast.error(err.message, {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
   };
 
   const notify = () => {

@@ -42,3 +42,10 @@
 .border-radius {
   border-radius: 25px;
 }
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
